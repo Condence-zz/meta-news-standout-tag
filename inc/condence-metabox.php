@@ -1,8 +1,11 @@
 <?php 
 add_action( 'init', 'condence_register_meta_fields' );
 function condence_register_meta_fields() {
-  register_meta( 'post', 'condence_metabox_tags', 'sanitize_text_field', 'condence_custom_fields_auth_callback' ); 
-  register_meta( 'post', 'condence_metabox_standout', 'condence_desinfectar_standout', 'condence_custom_fields_auth_callback' ); 
+    $post_types = apply_filters('condence/valid-posttypes', ['post']);
+    foreach ($post_types as $post_type) {
+	    register_meta( $post_type, 'condence_metabox_tags', 'sanitize_text_field', 'condence_custom_fields_auth_callback' );
+	    register_meta( $post_type, 'condence_metabox_standout', 'condence_desinfectar_standout', 'condence_custom_fields_auth_callback' );
+    }
 }
 
 function condence_desinfectar_standout( $value ) { 
@@ -14,7 +17,9 @@ function condence_desinfectar_standout( $value ) {
 }
 
 function condence_custom_fields_auth_callback( $allowed, $meta_key, $post_id, $user_id, $cap, $caps ) {
-  if( 'post' == get_post_type( $post_id ) && current_user_can( 'edit_post', $post_id ) ) {
+	$post_types = apply_filters('condence/valid-posttypes', ['post']);
+
+	if( in_array(get_post_type( $post_id ), $post_types) && current_user_can( 'edit_post', $post_id ) ) {
       $allowed = true;
   } else  {
       $allowed = false;
@@ -25,7 +30,10 @@ function condence_custom_fields_auth_callback( $allowed, $meta_key, $post_id, $u
 
 add_action( 'add_meta_boxes', 'condence_meta_boxes' );
 function condence_meta_boxes() {
-    add_meta_box( 'condence-meta-box', __( 'Google News SEO', 'condence_textdomain' ), 'condence_meta_box_callback', 'post' );
+	$post_types = apply_filters('condence/valid-posttypes', ['post']);
+	foreach ($post_types as $post_type) {
+		add_meta_box('condence-meta-box', __('Google News SEO', 'condence_textdomain'), 'condence_meta_box_callback', $post_type);
+	}
 }
  
 function condence_meta_box_callback( $post ) { 
@@ -66,4 +74,3 @@ function condence_save_custom_fields( $post_id, $post ){
         delete_post_meta( $post_id, 'condence_metabox_standout' );
     }
 }
-?>
